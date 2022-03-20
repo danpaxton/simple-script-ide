@@ -22,10 +22,10 @@ import { useState, useEffect } from 'react';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4caf50',
+      main: '#16a34a',
     },
     secondary: {
-      main: '#d50000'
+      main: '#b91c1c'
     }
   },
 });
@@ -82,13 +82,13 @@ const App = () => {
   };
 
   return (
-    <div className="App">
+    <div class="App">
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet"></link>
-      <header className="App-header">
-        <div className="Title flex items center absolute text-5xl top-2 left-40 right-40 text-left font-arvo text-green outline-5">
-          Simple-Script Interpreter</div>
+      <header class="App-header">
+        <div class="Title">
+          Simple-Script IDE </div>
         <ThemeProvider theme={theme}>
-        <div className='codeBox absolute top-20 bottom-80 left-40 right-40 text-left'>
+        <div class='codeBox'>
         <Button variant="text" color="primary" onClick={runCode}> <Icon>play_arrow</Icon>Run</Button>
         <Button variant="text" color="primary" onClick={downloadCode}> <Icon>download</Icon>Download</Button>
           <Button variant="text" color="secondary" onClick={handleClickOpen}> <Icon>clear</Icon>Clear </Button>
@@ -97,7 +97,7 @@ const App = () => {
             <DialogActions>
               <Button variant="contained" color="primary" onClick={handleClose}>Cancel</Button>
               <Button variant="contained" color="secondary" onClick={handleClear}>Clear</Button>
-            </DialogActions>
+            </DialogActions> 
           </Dialog>
         <CodeMirror className='CodeMirror'
           value={code}
@@ -111,8 +111,8 @@ const App = () => {
           }}
         />
         </div>
-        <div className='outputBox absolute top-25 bottom-10 left-60 right-60 text-left text-red'>
-          output: <p className='text-white'>{output}</p>
+        <div className='outputBox'>
+          output: <p style={{color: 'white'}}>{output}</p>
         </div> 
         </ThemeProvider>
       </header>

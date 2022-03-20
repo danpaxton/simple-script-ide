@@ -8,19 +8,24 @@
 }
 
 .Title {
-  text-shadow:
-  0.07em 0 rgb(0 0 0 / 0.2),
-  0 0.07em rgb(0 0 0 / 0.2),
-  -0.07em 0 rgb(0 0 0 / 0.2),
-  0 -0.07em rgb(0 0 0 / 0.2),
-  -0.07em -0.07em rgb(0 0 0 / 0.2),
-  -0.07em 0.07em rgb(0 0 0 / 0.2),
-  0.07em -0.07em rgb(0 0 0 / 0.2),
-  0.07em 0.07em rgb(0 0 0 / 0.2);
+  position: absolute;
+  font-size: xx-large;
+  color: #16a34a;
+  font-style: Arvo;
+  top: 10px;
+  left: 150px;
+  text-shadow: -1px 1px 0 #000,
+                          1px 1px 0 #000,
+                         1px -1px 0 #000,
+                        -1px -1px 0 #000;
 }
 
 .codeBox {
-  margin: auto;
+  position: absolute;
+  text-align: left;
+  top: 65px;
+  left: 150px;
+  right: 150px;
   background-color: #353a46;
   height: calc(80vh - 200px);
   box-shadow: 5px 45px 20px rgb(0 0 0 / 0.2),
@@ -29,14 +34,18 @@
 
 .outputBox {
   box-sizing: border-box;
-  margin: auto;
-  height: 190px;
+  position: absolute;
+  bottom: 50px;
+  left: 50px;
+  right: 50px;
+  height: 200px;
   padding: 10px;
-  width: 70%;
+  text-align: left;
   overflow-y: auto;
   overflow-wrap: break-word;
   scroll-behavior: smooth;
   background-color: black;
+  color: #b91c1c;
   border: solid #353a46 7px;
   box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
   -5px -5px 20px rgb(0 0 0 / 0.2);

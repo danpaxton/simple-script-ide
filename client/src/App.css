@@ -1,10 +1,7 @@
 .App {
   text-align: center;
-}
-
-.App-header {
-  background-color: #1b2a44;
   min-height: 100vh;
+  background-color: #1b2a44;
 }
 
 .Title {
@@ -13,7 +10,7 @@
   color: #16a34a;
   font-style: Arvo;
   top: 10px;
-  left: 150px;
+  left: 50px;
   text-shadow: -1px 1px 0 #000,
                           1px 1px 0 #000,
                          1px -1px 0 #000,
@@ -24,14 +21,36 @@
   position: absolute;
   text-align: left;
   top: 65px;
-  left: 150px;
-  right: 150px;
+  left: 320px;
+  right: 50px;
   background-color: #353a46;
   height: calc(80vh - 200px);
   box-shadow: 5px 45px 20px rgb(0 0 0 / 0.2),
     -5px -5px 20px rgb(0 0 0 / 0.2);
 }
 
+.fileBox {
+  box-sizing: border-box;
+  position: absolute;
+  top: 65px;
+  left: 50px;
+  height: 590px;
+  right: 1650px;
+  overflow: auto;
+  text-align: left;
+  scroll-behavior: smooth;
+  background-color: black;
+  border: solid #353a46 7px;
+  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
+  -5px -5px 20px rgb(0 0 0 / 0.2);
+}
+
+.fileName {
+  padding: 10px;
+  display: inline;
+  font-style: Arvo;
+  color: white;
+}
 .outputBox {
   box-sizing: border-box;
   position: absolute;

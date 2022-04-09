@@ -20,15 +20,16 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 
 import { useState, useEffect } from 'react';
+import { ButtonGroup } from '@mui/material';
 
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#16a34a',
+      main: '#1769aa',
     },
     secondary: {
-      main: '#b91c1c'
+      main: '#d32f2f'
     }
   },
 });
@@ -53,69 +54,81 @@ const baseUrl = "http://localhost:5000/sscript"
 
 const App = () => {
   const [code, setCode] = useLocalStorage('code', '');
+  const [parsedCode, setParsedCode] = useLocalStorage('parsed', '');
   const [output, setOutput] = useLocalStorage('out', '');
-  const [fileId, setFileId] = useLocalStorage('fileId', null);
-  const [fileTitle, setFileTitle] = useLocalStorage('fileTitle','Create new file.');
   
+  const [fileTitle, setFileTitle] = useState('Create, load, or save file.');
+  const [fileId, setFileId] = useState(null);
   const [fileList, setFileList] = useState([]);
+  const [hasChange, setHasChange] = useState(false);
   const [openClear, setOpenClear] = useState(false);
   const [openNewFile, setOpenNewFile] = useState(false);
+  const [delButtons, setDelButtons] = useState(false);
+  const [viewParse, setViewParse] = useState(false);
+  const [fromSave, setFromSave] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [nameError, setNameError] = useState([]);
 
 
-  const handleOpenClear = () => setOpenClear(true);
-  const handleCloseClear = () => setOpenClear(false);
-  const handleClear = () => { setCode(""); setOutput(""); setOpenClear(false) };
-
-
-  const onNameChange = (f) => setFileName(f.target.value);
-  const handleOpenNewFile = () => setOpenNewFile(true);
-  const handleCloseNewFile = () => { setFileName(""); setOpenNewFile(false) };
-  const handleNewFile = () => { newFile(fileName); setFileName(""); setOpenNewFile(false) };
-
-
+  const handleClear = () => { setCode(""); setOutput(""); setParsedCode(""); setOpenClear(false) };
+  const handleOpenNewFile = () =>{ setFileName(""); setOpenNewFile(true); }
+  const handleCloseNewFile = () => { setFileName(""); setNameError([false]); setOpenNewFile(false) };
+  
+  const handleNewFile = e => {
+    e.preventDefault()
+    const err = validInput()
+    setNameError(err);
+    if (!err[0]) {
+      newFile(fileName, !fromSave ? "" : code);
+      setFromSave(false);
+      handleCloseNewFile();
+    }
+  };
 
   const validInput = () => {
     const name_arr = fileName.split('.');
-    if (name_arr.length > 2 || name_arr[1] !== 'sscript') {
-      return { msg: "File name must end in '.sscript'.", isValid: false };
+    if (!fileName.includes(".") || name_arr.length > 2 || name_arr[1] !== 'ss') {
+      return [true,"File name must end in '.ss'."]
     }
-    if (name_arr[1].length > 100) {
-      return { msg: "Max character limit exceeded.", isValid: false };
+    if (name_arr[0].length > 24) {
+      return [true, "Max character limit exceeded."];
     }
-    return { isValid: true };
-  }
-
-
-  const fetchFiles = async () => {
-    const data =  await axios.get(`${baseUrl}/fetch-files`)
-    const { files } =  data.data;
-
-    setFileList(files);
-  }
-
-  const runCode = () => {
-    axios
-      .post(`${baseUrl}/interp`, parseProgram(code))
-      .then(res =>  setOutput(res.data))
-  }
-
-  const newFile = async (title) => {
-    try {
-      const { data } = await axios.post(`${baseUrl}/new-file`, {title: title, source_code: ""})
-      setFileList([...fileList, data]);
-      if (fileList.length > 0) {
-        saveFile(fileId, code);
-      }
-      loadFile(data.id);
-    } catch(err) {
-      console.error(err.message);
+    const f_name = fileName.trim().toLowerCase();
+    if (fileList.reduce((acc, e) => acc || (e.title.trim().toLowerCase() === f_name), false)) {
+      return [true, "Dulpicate file name."]
     }
+    return [false];
   }
 
-  const deleteFile = async (title, id) => {
+  const runCode = async (e) => {
+    const parsed = parseProgram(code);
+    setParsedCode(JSON.stringify(parsed));
+    await axios
+      .post(`${baseUrl}/interp`, parsed)
+      .then(res => setOutput(res.data))
+  }
+
+  const newFile = async (title, src) => {
+    const { data } = await axios.post(`${baseUrl}/new-file`, {title: title, source_code: src})
+    setFileList([...fileList, data]);
+    loadFile(data.id);
+    setHasChange(false);
+  }
+
+  const deleteFile = async (id) => {
     try {
       await axios.delete(`${baseUrl}/fetch-file/${id}`)
+      if (id === fileId) {
+        if (fileList.length > 1) {
+          const pos = fileList.findIndex(f => f.id === id);
+          loadFile(fileList[pos - 1].id);
+        } else {
+          setFileId(null);
+          setFileTitle("Create or save file.");
+          setCode("");
+        }
+      }
+      setDelButtons(false);
       setFileList(fileList.filter(f => f.id !== id));
     } catch (err) {
       console.log(err.message);
@@ -125,26 +138,35 @@ const App = () => {
   const loadFile = async (id) => {
     try {
       const { data } = await axios.get(`${baseUrl}/fetch-file/${id}`)
-      if (fileList.length > 0) {
-        saveFile(fileId, code);
-      }
       setFileId(data.id);
       setFileTitle(data.title);
       setCode(data.source_code);
+      setHasChange(false);
+      setDelButtons(false);
     } catch (err) {
       console.log(err.message);
     }
   }
 
-  const saveFile = async (id, source_code) => {
+  const saveFile = async () => {
    try {
-      await axios.put(`${baseUrl}/update-file/${id}`, { source_code })
+      if (fileId) {
+        await axios.put(`${baseUrl}/update-file/${fileId}`, { source_code: code });
+        setHasChange(false);
+      } else {
+        setFromSave(true)
+        setOpenNewFile(true);
+      }
     } catch(err) {
-      handleOpenNewFile();
+      console.log(err);
     }
   }
 
   useEffect(() => {
+    const fetchFiles = async () => {
+      const { data } = await axios.get(`${baseUrl}/fetch-files`);
+      setFileList(data.files);
+    }
     fetchFiles();
   }, [])
 
@@ -152,72 +174,83 @@ const App = () => {
     const element = document.createElement("a");
     const file = new Blob([code], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = "sscript.txt";
+    element.download = {fileName};
     document.body.appendChild(element);
     element.click();
   };
 
   return (
-    <div className="App">
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet"></link>
-        <div className="Title">
-          Simple-Script IDE </div>
-        <ThemeProvider theme={theme}>
-        <div className='codeBox'>
-        <Button variant="text" color="primary" onClick={runCode}> <Icon>play_arrow</Icon>Run</Button>
-        <Button variant="text" color="primary" onClick={() => saveFile(fileId, code)}> <Icon>playlist_add_check</Icon>Save</Button>
-        <Button variant="text" color="primary" onClick={downloadCode}> <Icon>download</Icon>Download</Button>
-        <Button variant="text" color="secondary" onClick={handleOpenClear}> <Icon>clear</Icon>Clear </Button>
-        <div className='fileName'>{fileTitle}</div>
-        <Dialog open={openClear} aria-labelledby="alert-dialog-title">
-          <DialogTitle id="alert-dialog-title">{"Clear all code?"}</DialogTitle>
-          <DialogActions>
-            <Button variant="contained" color="primary" onClick={handleCloseClear}>Cancel</Button>
-            <Button variant="contained" color="secondary" onClick={handleClear}>Clear</Button>
-          </DialogActions> 
-        </Dialog>
-        <CodeMirror 
-          value={code}
-          options={{
-            theme: "colorforth",
-            keymap: "sublime",
-            mode: "jsx"
-          }}
-          onChange={(editor, change) => {
-            setCode(editor.getValue());
-          }}
-        />
-        </div>
-        <div className="fileBox">
-          <Button variant="text" color="primary" onClick={handleOpenNewFile}> <Icon>post_add</Icon>New file</Button>
+  <div className="wrapper">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet"></link>
+    <ThemeProvider theme={theme}>
+    <div className="header"><div className="headerText">Simple-Script IDE</div></div>
+    <div className="sidebar">
+      <ButtonGroup variant="text">
+        <Button color="primary" onClick={handleOpenNewFile} style={{textTransform:'none'}}> <Icon>post_add</Icon>New File</Button>
+        <Button color="secondary" onClick={() => setDelButtons(!delButtons)} style={{textTransform:'none'}}> <Icon>delete</Icon>Delete</Button>
+      </ButtonGroup>
           <Dialog open={openNewFile} aria-labelledby="alert-dialog-title"> 
             <DialogActions>
-              <TextField id="standard-basic" defaultValue={fileName}  label="Enter file name." variant="standard" onChange={onNameChange}/>
+              <TextField id="standard-basic" error={nameError[0]} label={nameError[0] ? nameError[1]: "Enter file name."} 
+                variant="standard" onChange={f => setFileName(f.target.value)}/>
               <Button variant="contained" color="primary" onClick={handleNewFile}>Enter</Button>
               <Button variant="contained" color="secondary" onClick={handleCloseNewFile}>Cancel</Button>
             </DialogActions> 
           </Dialog>
-          <List dense={true} color="primary">
+          <List dense={true} color="primary" sx={{overflow: 'auto', position:'relative', maxHeight: 690}}>
               {fileList.map(file => (
                 <ListItem key={file.id}
-                disablePadding
-                  secondaryAction={
-                    <IconButton edge="end" color="secondary" aria-label="delete" onClick={() => deleteFile(file.title, file.id)}>
+                  disablePadding
+                  secondaryAction= { delButtons ?
+                    <IconButton edge="end" color="secondary" aria-label="delete" onClick={() => deleteFile(file.id)}>
                       <Icon>delete</Icon>
-                    </IconButton>
+                    </IconButton> : null
                   }
                 >
-                <Button size='small' style={{textTransform:'none'}} variant="outlined" fullWidth={true} color="primary" onClick={() => loadFile(file.id)}>{file.title}</Button>
+                <Button size='small' style={{textTransform:'none'}} variant="outlined" fullWidth={true} color="primary" 
+                  onClick={() => loadFile(file.id)}>{file.title}</Button>
                 </ListItem>)
               )}
-            </List>
-        </div>
-        <div className='outputBox'>
-          output: <p style={{color: 'white'}}>{output}</p>
-        </div> 
-        </ThemeProvider>
-    </div>
-  );
+            </List></div>
+    <div className="content">
+          <Button variant="text" color="primary" onClick={runCode} style={{textTransform:'none'}}> 
+            <Icon>play_arrow</Icon>Run</Button>
+          <Button variant="text" color="primary" onClick={saveFile} style={{textTransform:'none'}}>
+            <Icon>playlist_add_check</Icon>Save</Button>
+          <Button variant="text" color="primary" onClick={downloadCode} style={{textTransform:'none'}}> 
+            <Icon>download</Icon>Download</Button>
+          <Button variant="text" color="secondary" onClick={() => setOpenClear(true)} style={{textTransform:'none'}}>
+            <Icon>refresh</Icon>Clear </Button>
+          <div className='fileName'>{fileTitle}</div>
+          <div className='changes'>{ hasChange ? `Unsaved changes.` :  "All changes saved."}</div>
+          <Dialog open={openClear} aria-labelledby="alert-dialog-title">
+            <DialogTitle id="alert-dialog-title">{"Clear all code?"}</DialogTitle>
+            <DialogActions>
+              <Button variant="contained" color="primary" onClick={() => setOpenClear(false)}>Cancel</Button>
+              <Button variant="contained" color="secondary" onClick={handleClear}>Clear</Button>
+            </DialogActions> 
+          </Dialog>
+          <CodeMirror 
+            value={code}
+            options={{
+              theme: "colorforth",
+              keymap: "sublime",
+              mode: "python"
+            }}
+            onChange={(editor, change) => {
+              setHasChange(true);
+              setCode(editor.getValue());
+            }}
+          /></div>
+          <div className="footer">
+            <Button variant='outlined' size='small' color='secondary' 
+            onClick={() => setViewParse(!viewParse)}>{viewParse ? 'Parse ' : 'Output'}</Button>:
+          { viewParse ? <p style={{color: 'white'}}>{parsedCode}</p>
+           : <p style={{color: 'white'}}>{output}</p> } 
+          
+          </div>
+  </ThemeProvider>
+</div>)
 }
 
 export default App;

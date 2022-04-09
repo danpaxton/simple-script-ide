@@ -1,78 +1,79 @@
-.App {
-  text-align: center;
-  min-height: 100vh;
-  background-color: #1b2a44;
-}
-
-.Title {
-  position: absolute;
-  font-size: xx-large;
-  color: #16a34a;
-  font-style: Arvo;
-  top: 10px;
-  left: 50px;
-  text-shadow: -1px 1px 0 #000,
-                          1px 1px 0 #000,
-                         1px -1px 0 #000,
-                        -1px -1px 0 #000;
-}
-
-.codeBox {
-  position: absolute;
-  text-align: left;
-  top: 65px;
-  left: 320px;
-  right: 50px;
-  background-color: #353a46;
-  height: calc(80vh - 200px);
-  box-shadow: 5px 45px 20px rgb(0 0 0 / 0.2),
-    -5px -5px 20px rgb(0 0 0 / 0.2);
-}
-
-.fileBox {
-  box-sizing: border-box;
-  position: absolute;
-  top: 65px;
-  left: 50px;
-  height: 590px;
-  right: 1650px;
-  overflow: auto;
-  text-align: left;
-  scroll-behavior: smooth;
-  background-color: black;
-  border: solid #353a46 7px;
-  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
-  -5px -5px 20px rgb(0 0 0 / 0.2);
-}
-
 .fileName {
   padding: 10px;
   display: inline;
-  font-style: Arvo;
+
+  font-family: monospace;
   color: white;
 }
-.outputBox {
-  box-sizing: border-box;
-  position: absolute;
-  bottom: 50px;
-  left: 50px;
-  right: 50px;
-  height: 200px;
+
+.changes {
   padding: 10px;
-  text-align: left;
+  display: inline;
+  font-family: monospace;
+  font-size: small;
+  color: white;
+  float: right;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  position: static;
+  background: black;
+  border: solid thick #212121;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
+  -5px -5px 20px rgb(0 0 0 / 0.2);
+}
+
+.content {
+  grid-area: content;
+  height: calc(80vh - 200px);
+  background: #212121;
+  padding-bottom: 36.5px;
+  position: relative;
+  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
+  -5px -5px 20px rgb(0 0 0 / 0.2);
+}
+
+.header {
+  grid-area: header;
+  font-style: Arvo;
+  color: white;
+  font-size: x-large;
+}
+.headerText {
+  background: black;
+  border: solid thick black;
+  border-radius: 5px;
+  width:fit-content
+}
+
+.footer {
+  grid-area: footer;
+  position: static;
+  padding: 7.5px;
+  color: #b91c1c;
+  font-size: larger;
+  font-family: monospace;
+  border: solid thick #212121;
   overflow-y: auto;
   overflow-wrap: break-word;
   scroll-behavior: smooth;
-  background-color: black;
-  color: #b91c1c;
-  border: solid #353a46 7px;
+  background: black;
   box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
   -5px -5px 20px rgb(0 0 0 / 0.2);
-  font-family: 'Courier New', Courier, monospace;
 }
 
-.App-link {
-  color: #61dafb;
-
-}
-
+.wrapper {
+    padding: 10px;
+    display: grid;
+    grid-gap: 10px;
+    background-color: #424242;
+    grid-template-columns: minmax(auto, 200px) auto;
+    grid-template-rows: minmax(auto, 40px) auto minmax(auto, 250px);
+    grid-template-areas:
+    "header  header  header"
+    "sidebar content content"
+    "sidebar  footer  footer";
+  }

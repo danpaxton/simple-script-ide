@@ -4,14 +4,14 @@ from flask_cors import CORS
 
 
 api = Flask(__name__)
-api.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:G=scB(5,(-4g"9A<@localhost/sscript-ide'
+api.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://newuser:G=scB(5,(-4g"9A<@localhost/sscript_db'
 db = SQLAlchemy(api)
 CORS(api)
 
 
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.VARCHAR(100), nullable=False)
+    title = db.Column(db.VARCHAR(27), nullable=False)
     source_code = db.Column(db.TEXT, nullable=False)
 
     def __repr__(self):
@@ -40,7 +40,7 @@ def save_file():
 
 @api.route('/sscript/fetch-files', methods=['GET'])
 def fetch_files():
-    files = File.query.order_by(File.id.asc()).all()
+    files = File.query.all()
     return { 'files': [format_file(file) for file in files] } 
 
 
@@ -71,7 +71,7 @@ def interp_code():
     if parsedCode['kind'] != 'ok':
         return parsedCode['message']
     
-    return str(parsedCode['value'])
+    return "In development."
 
 
 if __name__ == "__main__":

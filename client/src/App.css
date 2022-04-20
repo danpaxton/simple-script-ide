@@ -20,7 +20,7 @@
   position: static;
   background: black;
   border: solid thick #212121;
-  overflow-y: auto;
+  overflow: auto;
   scroll-behavior: smooth;
   box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
   -5px -5px 20px rgb(0 0 0 / 0.2);
@@ -38,13 +38,20 @@
 
 .header {
   grid-area: header;
-  font-style: Arvo;
-  color: white;
-  font-size: x-large;
+  display: inline-flex;
 }
+
+.login {
+  grid-area: login;
+  align-content: center;
+}
+
 .headerText {
   background: black;
   border: solid thick black;
+  font-family: Arvo;
+  color: white;
+  font-size: x-large;
   border-radius: 5px;
   width:fit-content
 }
@@ -70,10 +77,10 @@
     display: grid;
     grid-gap: 10px;
     background-color: #424242;
-    grid-template-columns: minmax(auto, 200px) auto;
+    grid-template-columns: minmax(auto, 220px) auto;
     grid-template-rows: minmax(auto, 40px) auto minmax(auto, 250px);
     grid-template-areas:
-    "header  header  header"
+    "header  header  login"
     "sidebar content content"
     "sidebar  footer  footer";
   }

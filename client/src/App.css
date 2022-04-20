@@ -43,7 +43,6 @@
 
 .login {
   grid-area: login;
-  align-content: center;
 }
 
 .headerText {

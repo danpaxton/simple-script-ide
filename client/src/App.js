@@ -3,7 +3,7 @@ import { useToken } from './useToken';
 
 import axios from "axios";
 
-import { parseProgram } from 'sscript-parser/src/parser/index.js';
+import { parseProgram } from 'simple-script-parser';
 
 import CodeMirror from '@uiw/react-codemirror';
 import 'codemirror/keymap/sublime';
@@ -46,6 +46,7 @@ const App = () => {
   const [code, setCode] = useState('');
   const [parsedCode, setParsedCode] = useState('');
   const [output, setOutput] = useState('');
+  const [interpError, setInterpError] = useState(false);
   const [fileTitle, setFileTitle] = useState(token ? "Create or load a file." : "Login to create files.");
   const [fileId, setFileId] = useState(null);
   const [nextId, setNextId] = useState(null);
@@ -59,6 +60,7 @@ const App = () => {
   const [fileName, setFileName] = useState("");
   const [nameError, setNameError] = useState([]);
   const [tokenExpired, setTokenExpired] = useState(false);
+
   
   // Login Handles
   const handleLogin = async () => {
@@ -186,8 +188,13 @@ const App = () => {
 
   const runCode = async () => {
     const parsed = parseProgram(code);
+    setInterpError(parsed.kind === 'error');
     setParsedCode(JSON.stringify(parsed));
-    const { data } = await axios.post(`${baseUrl}/interp`, parsed)
+    const { data } = await axios.post(`${baseUrl}/interp`, parsed, token ? {
+      headers: {
+        'Authorization': `Bearer ${token.access_token}` 
+      }
+    }: {})
     refresh(data.access_token);
     setOutput(data.output);
   }
@@ -265,7 +272,7 @@ const App = () => {
 
   const saveFile = async () => {
    try {
-      const { data } = await axios.put(`${baseUrl}/update-file/${fileId}`, { source_code: code }, {
+      const { data } = await axios.put(`${baseUrl}/fetch-file/${fileId}`, { source_code: code }, {
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -417,7 +424,7 @@ const App = () => {
             options={{
               theme: "night",
               keymap: "sublime",
-              mode: "jsx"
+              mode: "text"
             }}
             onChange={(editor, change) => {
               setHasChange(true);
@@ -426,9 +433,9 @@ const App = () => {
           /></div>
           <div className="footer">
             <Button variant='outlined' size='small' color='secondary' 
-            onClick={() => setViewParse(!viewParse)}>{viewParse ? 'Parse ' : 'Output'}</Button>:
-          { viewParse ? <p style={{color: 'white'}}>{parsedCode}</p>
-           : <p style={{color: 'white'}}>{output}</p> } 
+              onClick={() => setViewParse(!viewParse)}>{viewParse ? 'Parse ' : 'Output'}
+            </Button>:{ viewParse ? <p style={{color: 'white'}}>{parsedCode}</p>
+              : <p style={{color: interpError ? '#b2102f' : '#6573c3'}}>{output}</p> } 
           </div>
           <Dialog open={tokenExpired}>
             <DialogTitle sx={{fontSize: 17, textAlign:'center'}}>{"Access token has expired. Logging out."}</DialogTitle>

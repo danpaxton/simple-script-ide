@@ -132,13 +132,17 @@ def fetch_files():
 
 
 # Get or Delete file
-@api.route('/fetch-file/<id>', methods=['GET', 'DELETE'])
+@api.route('/fetch-file/<id>', methods=['GET', 'DELETE', 'PUT'])
 @jwt_required()
 def fetch_file(id):
     files = current_user.files
     pos, file = binary_search(files, id)
     if request.method == 'GET':
         return { 'file': format_file(file) }
+    elif request.method == 'PUT':
+        file.source_code = request.json['source_code']
+        db.session.commit()
+        return { 'msg': 'file updated.' } 
     else:
         next_file = None
         if len(current_user.files) > 1:
@@ -146,16 +150,6 @@ def fetch_file(id):
 
         db.session.delete(file); db.session.commit()
         return {'next_file': next_file}
-
-
-# Update file
-@api.route('/update-file/<id>', methods=['PUT'])
-@jwt_required()
-def update_file(id):
-    pos, file = binary_search(current_user.files, id)
-    file.source_code = request.json['source_code']
-    db.session.commit()
-    return { 'msg': 'file updated.' }
 
 
 # Interp parsed code

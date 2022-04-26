@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const useToken = () => {
+const useToken = () => {
   function getToken() {
     const userToken = localStorage.getItem('token');
     return userToken ? JSON.parse(userToken) : null
@@ -24,3 +24,4 @@ export const useToken = () => {
     removeToken
   }
 }
+export default useToken;

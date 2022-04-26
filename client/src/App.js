@@ -1,21 +1,21 @@
 import './App.css';
-import { useToken } from './useToken';
+import useToken from './useToken';
+import Login from './Login';
 
 import axios from "axios";
 
-import { parseProgram } from 'simple-script-parser';
+import { parseProgram } from 'simple_script_parser';
 
 import CodeMirror from '@uiw/react-codemirror';
 import 'codemirror/keymap/sublime';
-import 'codemirror/theme/night.css';
+import 'codemirror/theme/ayu-dark.css';
 
 import { Button, Icon, IconButton, ButtonGroup } from '@mui/material';
-import { Dialog, DialogActions, DialogTitle, DialogContentText, DialogContent, TextField } from '@mui/material';
+import { Dialog, DialogActions, DialogTitle, TextField } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { List, ListItemSecondaryAction, ListItemButton, ListItemText, ListItem } from '@mui/material';
 
 import { useState, useEffect } from 'react';
-import { Box } from '@mui/system';
 
 const theme = createTheme({
   palette: {
@@ -31,24 +31,10 @@ const theme = createTheme({
 const baseUrl = "http://localhost:5000"
 
 const App = () => {
-  //Login Hooks
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // IDE Hooks
   const { token, setToken, removeToken } = useToken();
-  const [openLogin, setOpenLogin] = useState(false);
-  const [openNewUser, setOpenNewUser] = useState(false);
-  const [registerError, setRegisterError] = useState(null);
-  const [loginError, setLoginError] = useState(null);
-  const [error, setError] = useState(false);
-  const [showPass, setShowPass] = useState(false);
-
-  //IDE Hooks
-  const [code, setCode] = useState('');
-  const [parsedCode, setParsedCode] = useState('');
-  const [output, setOutput] = useState('');
-  const [interpError, setInterpError] = useState(false);
-  const [fileTitle, setFileTitle] = useState(token ? "Create or load a file." : "Login to create files.");
-  const [fileId, setFileId] = useState(null);
+  const [out, setOut] = useState({output: '', parsed: ''})
+  const [file, setFile ] = useState({title: token ? "Create or load a file." : "Login to create files.", id: null, code: ''})
   const [nextId, setNextId] = useState(null);
   const [fileList, setFileList] = useState([]);
   const [hasChange, setHasChange] = useState(false);
@@ -57,80 +43,13 @@ const App = () => {
   const [openNoSave, setOpenNoSave] = useState(false);
   const [delButtons, setDelButtons] = useState(false);
   const [viewParse, setViewParse] = useState(false);
+  const [interpError, setInterpError] = useState(false);
   const [fileName, setFileName] = useState("");
   const [nameError, setNameError] = useState([]);
   const [tokenExpired, setTokenExpired] = useState(false);
 
-  
-  // Login Handles
-  const handleLogin = async () => {
-    try {
-        const { data } = await axios.post(`${baseUrl}/login`, { username, password })
-        setToken(data); 
-        setFileTitle("Create or load a file.")
-        setOpenLogin(false);
-        setLoginError(null);
-        setError(false);
-    } catch {
-        setLoginError("Invalid username or password.");
-        setError(true);
-    }
-  }
-
-  const logOut = () => {
-    setFileList([]);
-    setFileId(null);
-    setFileTitle("Login to create files.");
-    setCode("");
-    setOutput("");
-    setParsedCode("");
-    setHasChange(false);
-    removeToken();
-  }
-
-  const handleNewUser = async (e) => {
-      e.preventDefault();
-      if (username.length > 50) {
-        setRegisterError('Maximum username length exceeded.')
-        setError(true); 
-      }
-      else if (username.includes(' ')) {
-        setRegisterError('Username cannot contain spaces.')
-        setError(true); 
-      } else {
-          try {
-              await axios.post(`${baseUrl}/create-user`, { username, password })
-              setOpenNewUser(false)
-              setRegisterError(null)
-              setError(false)
-          } catch(err) {
-              if (err.response.status === 401) {
-                setRegisterError('User already exists.')
-                setError(true);
-              } else {
-                console.log(err);
-              }
-          }
-      }
-  }
-
-  const handleCloseLogin = () => {
-      setOpenLogin(false);
-      setLoginError(null); 
-      setError(false);
-      setShowPass(false);
-  }
-
-  const handleCloseNewUser = () => {
-      setOpenNewUser(false);
-      setError(false);
-      setRegisterError(null); 
-      setShowPass(false);
-  }
-
-
-  // File Handles
-  const handleClear = () => { setCode(""); setOutput(""); setParsedCode(""); setOpenClear(false) };
+  // IDE Handles
+  const handleClear = () => { setOut({output:'', parsed:''}); setFile({...file, code: ''}); setOpenClear(false) };
 
   const handleOpenNewFile = () => { setFileName(""); setOpenNewFile(true) }
 
@@ -140,10 +59,18 @@ const App = () => {
 
   const handleUnsavedIgnore = () => { loadFile(nextId); setOpenNoSave(false) };
 
+  const logOut = () => {
+    setFileList([]);
+    setFile({title: "Login to create files.", id: null, code:''})
+    setOut({output:'', parsed:''})
+    setHasChange(false);
+    removeToken();
+  }
+
   const handleLoadFile = (id) => {
     setDelButtons(false);
-    if (fileId !== id) {
-      if (!hasChange || !fileId) {
+    if (file.id !== id) {
+      if (!hasChange || !file.id) {
         loadFile(id)
       } else {
         setNextId(id); 
@@ -187,16 +114,15 @@ const App = () => {
   }     
 
   const runCode = async () => {
-    const parsed = parseProgram(code);
+    const parsed = parseProgram(file.code);
     setInterpError(parsed.kind === 'error');
-    setParsedCode(JSON.stringify(parsed));
     const { data } = await axios.post(`${baseUrl}/interp`, parsed, token ? {
       headers: {
         'Authorization': `Bearer ${token.access_token}` 
       }
     }: {})
     refresh(data.access_token);
-    setOutput(data.output);
+    setOut({output: data.output,  parsed: JSON.stringify(parsed) });
   }
 
   const handleUnAuth = (err) => {
@@ -210,7 +136,7 @@ const App = () => {
 
   const newFile = async (title) => {
     try {
-      const { data } = await axios.post(`${baseUrl}/new-file`, {title: title, source_code: ""}, {
+      const { data } = await axios.post(`${baseUrl}/new-file`, {title: title, code: ""}, {
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -230,16 +156,13 @@ const App = () => {
           'Authorization': `Bearer ${token.access_token}` 
         }
       })
-      if (id === fileId) {
+      if (id === file.id) {
         const nextFile = data.next_file
         if (nextFile) {
           loadFile(nextFile);
         } else {
-          setFileId(null);
-          setFileTitle("Create new file.");
-          setCode("");
-          setOutput("");
-          setParsedCode("");
+          setFile({title:"Create new file.", id: null, code:''})
+          setOut({output: '', parsed: ''})
         }
       }
       refresh(data.access_token);
@@ -258,11 +181,8 @@ const App = () => {
         }
       })
       refresh(data.access_token);
-      setFileId(data.file.id);
-      setFileTitle(data.file.title);
-      setCode(data.file.source_code);
-      setOutput('');
-      setParsedCode('');
+      setFile(data.file);
+      setOut({output: '', parsed: ''});
       setHasChange(false);
       setDelButtons(false);
     } catch (err) {
@@ -272,7 +192,7 @@ const App = () => {
 
   const saveFile = async () => {
    try {
-      const { data } = await axios.put(`${baseUrl}/fetch-file/${fileId}`, { source_code: code }, {
+      const { data } = await axios.put(`${baseUrl}/fetch-file/${file.id}`, { code: file.code }, {
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -283,7 +203,7 @@ const App = () => {
       handleUnAuth(err);
     }
   }
- 
+  
   useEffect(() => {
     const fetchFiles = async () => {
       try {
@@ -305,67 +225,22 @@ const App = () => {
 
   const downloadCode = () => {
     const element = document.createElement("a");
-    const file = new Blob([code], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = `${fileId ? fileTitle : "untitled.ss"}`;
+    const download = new Blob([file.code], { type: "text/plain" });
+    element.href = URL.createObjectURL(download);
+    element.download = `${file.id ? file.title : "untitled.ss"}`;
     document.body.appendChild(element);
     element.click();
   };
-
-  const validCredentials = () => username.length && password.length
 
   return (
   <div className="wrapper">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet"></link>
     <ThemeProvider theme={theme}>
     <div className="header"><div className="headerText">Simple-Script IDE</div>
-      <Dialog open={openLogin}> 
-        <DialogTitle sx={{fontSize: 17}} id="alert-dialog-title">{"User login"}</DialogTitle>
-        <DialogContent>
-        <DialogContentText sx={{fontSize: 13}}>{error ? loginError : "Enter user credentials."}
-          </DialogContentText>
-            <DialogActions>
-              <TextField  error={error} label={"Enter username."} 
-                variant="standard" onChange={f => setUsername(f.target.value)}/>
-              <TextField error={error} label={"Enter password."} 
-                variant="standard" type={showPass ? "text" : "password"} onChange={f => setPassword(f.target.value)}/>
-              <IconButton onClick={() => setShowPass(!showPass)}>
-                {showPass ? (<Icon>visibility</Icon>) : (<Icon>visibility_off</Icon>)}</IconButton>
-              <Button disabled={!validCredentials()} variant="contained" 
-                size='small' color="primary" onClick={handleLogin}>Login</Button>
-              <Button variant="contained" size='small' color="secondary" onClick={handleCloseLogin}>Cancel</Button>
-            </DialogActions> 
-            </DialogContent>
-        </Dialog>
-        <Dialog open={openNewUser}> 
-          <DialogTitle sx={{fontSize: 17}} id="alert-dialog-title">{"Create new user"}</DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{fontSize: 13}}>{error ? registerError : "Enter new user information."}</DialogContentText>
-            <DialogActions>
-              <TextField error={error} label={"Enter username."} 
-                variant="standard" onChange={f => setUsername(f.target.value)}/>
-              <TextField error={error} label={"Enter password."}
-                variant="standard" type={showPass ? "text" : "password"} onChange={f => setPassword(f.target.value)}/>
-              <IconButton onClick={() => setShowPass(!showPass)}>{showPass ? (<Icon>visibility</Icon>) : (<Icon>visibility_off</Icon>)}</IconButton>
-              <Button disabled={!validCredentials()} 
-                size='small' variant="contained" color="primary" onClick={handleNewUser}>Create</Button>
-              <Button variant="contained" size='small' color="secondary" onClick={handleCloseNewUser}>Cancel</Button>
-            </DialogActions> 
-          </DialogContent>
-        </Dialog>
-        <Button sx={{color: 'white'}} align='right' onClick={() => window.open("https://github.com/danpaxton/simple-script-parser")}>language information</Button>
-        </div>
-        <div className="login">
-        <Box sx={{ display: 'flex', 
-                alignItems:'center', 
-                     color: 'white', 
-                  fontSize:"17px" ,
-                fontFamily:"monospace", 
-             flexDirection:'row-reverse'}} >
-          <Button variant="contained" sx={{ color:"white" }} onClick={() => token ? logOut() : setOpenLogin(true)}>{token ? "Logout" : "Login"}</Button>
-            { token ? token.username + "  :" : <Button sx={{color: 'white'}} onClick={() => setOpenNewUser(true)}>New User</Button>}
-        </Box> 
-        </div>
+      <Button sx={{color: 'white'}} align='right' onClick={() => window.open("https://www.npmjs.com/package/simple_script_parser")}>language information</Button>
+    </div>
+    <Login token={token} setToken={setToken}
+      setFile={setFile} setOut={setOut} logOut={logOut}/>
     <div className="sidebar">
       <div style={{background: "#212121"}}>
       <ButtonGroup size='small' fullWidth={true} variant="outlined">
@@ -396,13 +271,13 @@ const App = () => {
     <div className="content">
           <Button variant="text" color="primary" onClick={runCode} > 
             <Icon>play_arrow</Icon>Run</Button>
-          <Button variant="text" color="primary" disabled={!fileId} onClick={saveFile}>
+          <Button variant="text" color="primary" disabled={!file.id} onClick={saveFile}>
             <Icon>playlist_add_check</Icon>Save</Button>
           <Button variant="text" color="primary" onClick={downloadCode} > 
             <Icon>download</Icon>Download</Button>
           <Button variant="text" color="secondary" onClick={() => setOpenClear(true)} >
             <Icon>refresh</Icon>Clear </Button>
-          <div className='fileName'>{fileTitle}</div>
+          <div className='fileName'>{file.title}</div>
           <div className='changes'>{ hasChange ? `Unsaved changes.` :  "All changes saved."}</div>
           <Dialog open={openClear} aria-labelledby="alert-dialog-title">
             <DialogTitle sx={{fontSize: 17, textAlign:'center'}} id="alert-dialog-title">{"Clear all code?"}</DialogTitle>
@@ -419,23 +294,23 @@ const App = () => {
             </DialogActions> 
           </Dialog>
           <CodeMirror 
-            value={code}
+            value={file.code}
             height='100%'
             options={{
-              theme: "night",
+              theme: "ayu-dark",
               keymap: "sublime",
-              mode: "text"
+              mode: "python"
             }}
             onChange={(editor, change) => {
               setHasChange(true);
-              setCode(editor.getValue());
+              setFile({...file, code: editor.getValue()});
             }}
           /></div>
           <div className="footer">
             <Button variant='outlined' size='small' color='secondary' 
               onClick={() => setViewParse(!viewParse)}>{viewParse ? 'Parse ' : 'Output'}
-            </Button>:{ viewParse ? <p style={{color: 'white'}}>{parsedCode}</p>
-              : <p style={{color: interpError ? '#b2102f' : '#6573c3'}}>{output}</p> } 
+            </Button>:{ viewParse ? <p style={{color: 'white'}}>{out.parsed}</p>
+              : <p style={{color: interpError ? '#b2102f' : '#6573c3'}}>{out.output}</p> } 
           </div>
           <Dialog open={tokenExpired}>
             <DialogTitle sx={{fontSize: 17, textAlign:'center'}}>{"Access token has expired. Logging out."}</DialogTitle>
@@ -446,5 +321,4 @@ const App = () => {
   </ThemeProvider>
 </div>)
 }
-
 export default App;

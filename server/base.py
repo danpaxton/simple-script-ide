@@ -96,7 +96,7 @@ def format_file(file):
     return {
         'id': file.id,
         'title': file.title,
-        'source_code': file.source_code,
+        'code': file.source_code,
     }
 
 
@@ -120,7 +120,7 @@ def binary_search(fileList, id):
 @jwt_required()
 def new_file():
     data = request.get_json()
-    file = File(title=data['title'], source_code=data['source_code'], user=current_user)
+    file = File(title=data['title'], source_code=data['code'], user=current_user)
     db.session.add(file); db.session.commit()
     return { 'file': format_file(file) }
 
@@ -140,7 +140,7 @@ def fetch_file(id):
     if request.method == 'GET':
         return { 'file': format_file(file) }
     elif request.method == 'PUT':
-        file.source_code = request.json['source_code']
+        file.source_code = request.json['code']
         db.session.commit()
         return { 'msg': 'file updated.' } 
     else:
@@ -154,6 +154,7 @@ def fetch_file(id):
 
 # Interp parsed code
 @api.route('/interp', methods=['POST'])
+@jwt_required(optional=True)
 def interp_code():
     parsedCode = request.get_json()
 

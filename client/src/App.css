@@ -43,7 +43,14 @@
 
 .login {
   grid-area: login;
+  display: flex;
+  align-items: center;
+  color: white; 
+  font-size: 17px;
+  font-family: monospace; 
+  flex-direction: row-reverse;
 }
+
 
 .headerText {
   background: black;
@@ -52,7 +59,6 @@
   color: white;
   font-size: x-large;
   border-radius: 5px;
-  width:fit-content
 }
 
 .footer {

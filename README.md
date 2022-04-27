@@ -1,13 +1,14 @@
 # simple-script-ide
 
-**Requirements**
-Heroku
+# Running client locally
 
-
+Clone repository
 ```console
-$ heroku login
+$ git clone https://github.com/danpaxton/simple-script-ide.git
+$ cd simple-script-ide
 ```
 
+Install Flask api requirements
 ```console
-$ heroku git:clone -a simple-script-ide
+$ 
 ```

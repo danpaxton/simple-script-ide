@@ -1,6 +1,5 @@
 import './App.css';
 import { api } from './App';
-import axios from "axios";
 import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { TextField, Icon, Button, IconButton, } from "@mui/material";
@@ -61,6 +60,7 @@ const Login = (props) => {
         }
     }
     const validCredentials = () => username.length && password.length
+    // Login component
     return (
     <div className='login'>
       <Dialog open={openLogin}> 

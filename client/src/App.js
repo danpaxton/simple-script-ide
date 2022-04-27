@@ -28,11 +28,9 @@ const theme = createTheme({
   },
 });
 
-
 export const api = axios.create({
   baseURL: 'https://simple-script-ide.herokuapp.com'
 })
-
 
 export const App = () => {
   // IDE Hooks
@@ -117,6 +115,7 @@ export const App = () => {
     }
   }     
 
+  // User api calls
   const runCode = async () => {
     const parsed = parseProgram(file.code);
     setInterpError(parsed.kind === 'error');

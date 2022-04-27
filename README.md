@@ -1,6 +1,6 @@
 # simple-script-ide
 
-# Running client locally
+**Running client locally**
 
 Clone repository.
 ```console
@@ -14,5 +14,5 @@ $ cd client
 $ npm install
 $ npm run start
 ```
-
+The IDE should now be running on localhost:3000
 

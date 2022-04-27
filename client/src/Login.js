@@ -1,10 +1,9 @@
 import './App.css';
+import { api } from './App';
 import axios from "axios";
 import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { TextField, Icon, Button, IconButton, } from "@mui/material";
-
-const apiUrl = 'https://simple-script-ide.herokuapp.com';
 
 const Login = (props) => {
     //Login Hooks
@@ -30,7 +29,7 @@ const Login = (props) => {
 
     const handleLogin = async () => {
         try {
-            const { data } = await axios.post(`${apiUrl}/login`, { username, password })
+            const { data } = await api.post(`/login`, { username, password })
             props.setToken(data); 
             props.setFile({title: "Create or load a file.", id: null, code: ''});
             props.setOut({output: '', parsed:''})
@@ -49,7 +48,7 @@ const Login = (props) => {
             setRegisterError('Username cannot contain spaces.')
         } else {
             try {
-                await axios.post(`${apiUrl}/new-user`, { username, password })
+                await api.post(`/new-user`, { username, password })
                 handleLogin();
                 handleCloseNewUser();
             } catch(err) {

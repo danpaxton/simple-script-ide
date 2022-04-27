@@ -28,9 +28,13 @@ const theme = createTheme({
   },
 });
 
-const apiUrl = 'https://simple-script-ide.herokuapp.com'
 
-const App = () => {
+export const api = axios.create({
+  baseURL: 'https://simple-script-ide.herokuapp.com'
+})
+
+
+export const App = () => {
   // IDE Hooks
   const { token, setToken, removeToken } = useToken();
   const [out, setOut] = useState({output: '', parsed: ''})
@@ -116,7 +120,7 @@ const App = () => {
   const runCode = async () => {
     const parsed = parseProgram(file.code);
     setInterpError(parsed.kind === 'error');
-    const { data } = await axios.post(`${apiUrl}/interp`, parsed, token ? {
+    const { data } = await api.post(`/interp`, parsed, token ? {
       headers: {
         'Authorization': `Bearer ${token.access_token}` 
       }
@@ -136,7 +140,7 @@ const App = () => {
 
   const newFile = async (title) => {
     try {
-      const { data } = await axios.post(`${apiUrl}/new-file`, {title: title, code: ""}, {
+      const { data } = await api.post(`/new-file`, {title: title, code: ""}, {
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -151,7 +155,7 @@ const App = () => {
 
   const deleteFile = async (id) => {
     try {
-      const {data} = await axios.delete(`${apiUrl}/fetch-file/${id}`,{
+      const {data} = await api.delete(`/fetch-file/${id}`,{
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -175,7 +179,7 @@ const App = () => {
 
   const loadFile = async (id) => {
     try {
-      const { data } = await axios.get(`${apiUrl}/fetch-file/${id}`, {
+      const { data } = await api.get(`/fetch-file/${id}`, {
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -192,7 +196,7 @@ const App = () => {
 
   const saveFile = async () => {
    try {
-      const { data } = await axios.put(`${apiUrl}/fetch-file/${file.id}`, { code: file.code }, {
+      const { data } = await api.put(`/fetch-file/${file.id}`, { code: file.code }, {
         headers: {
           'Authorization': `Bearer ${token.access_token}` 
         }
@@ -207,7 +211,7 @@ const App = () => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const { data } = await axios.get(`${apiUrl}/fetch-files`,{
+        const { data } = await api.get(`/fetch-files`,{
           headers: {
             'Authorization': `Bearer ${token.access_token}` 
           }
@@ -321,4 +325,3 @@ const App = () => {
   </ThemeProvider>
 </div>)
 }
-export default App;

@@ -10,9 +10,9 @@ import json, os
 load_dotenv()
 
 api = Flask(__name__, static_folder="client/build", static_url_path="")
-api.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URI')
+api.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 api.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-api.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY')
+api.config['JWT_SECRET_KEY'] = os.environ.get('SECRET_KEY')
 api.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=3)
 jwt = JWTManager(api)
 db = SQLAlchemy(api)
@@ -61,9 +61,9 @@ def login():
     return {'msg': 'Invalid login credentials'}, 401
 
 
-@api.route('/create-user', methods=['POST'])
+@api.route('/new-user', methods=['POST'])
 @cross_origin
-def create_user():
+def new_user():
     data = request.get_json()
     username = data['username']
     user = User.query.filter_by(username=username.lower()).one_or_none()

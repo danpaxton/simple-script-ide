@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { TextField, Icon, Button, IconButton, } from "@mui/material";
 
-const baseUrl = process.env.API
+const apiUrl = process.env.API_URL;
 
 const Login = (props) => {
     //Login Hooks
@@ -30,7 +30,7 @@ const Login = (props) => {
 
     const handleLogin = async () => {
         try {
-            const { data } = await axios.post(`${baseUrl}/login`, { username, password })
+            const { data } = await axios.post(`${apiUrl}/login`, { username, password })
             props.setToken(data); 
             props.setFile({title: "Create or load a file.", id: null, code: ''});
             props.setOut({output: '', parsed:''})
@@ -49,7 +49,7 @@ const Login = (props) => {
             setRegisterError('Username cannot contain spaces.')
         } else {
             try {
-                await axios.post(`${baseUrl}/create-user`, { username, password })
+                await axios.post(`${apiUrl}/new-user`, { username, password })
                 handleLogin();
                 handleCloseNewUser();
             } catch(err) {

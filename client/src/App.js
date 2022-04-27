@@ -28,7 +28,7 @@ const theme = createTheme({
   },
 });
 
-const apiUrl = process.env.API_URL
+const apiUrl = 'https://simple-script-ide.herokuapp.com/'
 
 const App = () => {
   // IDE Hooks

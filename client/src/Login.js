@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { TextField, Icon, Button, IconButton, } from "@mui/material";
 
-const apiUrl = process.env.API_URL;
+const apiUrl = 'https://simple-script-ide.herokuapp.com/';
 
 const Login = (props) => {
     //Login Hooks

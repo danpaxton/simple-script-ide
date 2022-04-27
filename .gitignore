@@ -1,7 +1,10 @@
-venv
+
 node_modules
 .pnp
 .pnp.js
+
+# Environment
+venv
 
 # testing
 coverage

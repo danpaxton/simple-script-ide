@@ -47,7 +47,7 @@ def user_lookup_callback(_jwt_header, jwt_data):
     return User.query.filter_by(id=identity).one_or_none()
 
 
-@api.route('/login', methods=['POST'])
+@api.route('/login', methods=['POST'], endpoint='login')
 @cross_origin
 def login():
     data = request.get_json()
@@ -61,7 +61,7 @@ def login():
     return {'msg': 'Invalid login credentials'}, 401
 
 
-@api.route('/new-user', methods=['POST'])
+@api.route('/new-user', methods=['POST'], endpoint='new-user')
 @cross_origin
 def new_user():
     data = request.get_json()
@@ -117,7 +117,7 @@ def binary_search(fileList, id):
 
 
 # Save file
-@api.route('/new-file', methods=['POST'])
+@api.route('/new-file', methods=['POST'], endpoint='new_file')
 @cross_origin
 @jwt_required()
 def new_file():
@@ -127,7 +127,7 @@ def new_file():
     return { 'file': format_file(file) }
 
 
-@api.route('/fetch-files', methods=['GET'])
+@api.route('/fetch-files', methods=['GET'], endpoint='fetch_files')
 @cross_origin
 @jwt_required()
 def fetch_files():
@@ -135,7 +135,7 @@ def fetch_files():
 
 
 # Get or Delete file
-@api.route('/fetch-file/<id>', methods=['GET', 'DELETE', 'PUT'])
+@api.route('/fetch-file/<id>', methods=['GET', 'DELETE', 'PUT'], endpoint='fetch_file')
 @cross_origin
 @jwt_required()
 def fetch_file(id):
@@ -157,10 +157,10 @@ def fetch_file(id):
 
 
 # Interp parsed code
-@api.route('/interp', methods=['POST'])
+@api.route('/interp', methods=['POST'], endpoint='interp')
 @cross_origin
 @jwt_required(optional=True)
-def interp_code():
+def interp():
     parsedCode = request.get_json()
 
     if parsedCode['kind'] != 'ok':
@@ -168,7 +168,8 @@ def interp_code():
     
     return { 'output': 'in development' }
 
-@api.route('/')
+
+@api.route('/', endpoint='serve')
 @cross_origin
 def serve():
     return send_from_directory(api.static_folder, 'index.html')

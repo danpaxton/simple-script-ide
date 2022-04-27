@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import json, os
 load_dotenv()
 
-api = Flask(__name__, static_folder="client/build", staic_url_path="")
+api = Flask(__name__, static_folder="client/build", static_url_path="")
 api.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URI')
 api.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY')

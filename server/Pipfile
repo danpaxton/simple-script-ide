@@ -12,6 +12,7 @@ python-dotenv = "*"
 flask-jwt-extended = "*"
 flask-migrate = "*"
 werkzeug = "*"
+gunicorn = "*"
 
 [dev-packages]
 

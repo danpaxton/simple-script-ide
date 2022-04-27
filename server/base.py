@@ -1,15 +1,16 @@
 from flask import Flask, request
+from flask.helpers import send_from_directory
 from datetime import timedelta, timezone, datetime
 from flask_jwt_extended import create_access_token, get_jwt, jwt_required, JWTManager, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
 import json, os
 load_dotenv()
 
-api = Flask(__name__)
+api = Flask(__name__, static_folder="../client/build", staic_url_path="")
 api.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URI")
 api.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 api.config['JWT_SECRET_KEY'] = os.getenv("SECRET_KEY")
@@ -49,6 +50,7 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 
 @api.route('/login', methods=['POST'])
+@cross_orgin
 def login():
     data = request.get_json()
     user = User.query.filter_by(username=data['username']).one_or_none()
@@ -62,6 +64,7 @@ def login():
 
 
 @api.route('/create-user', methods=['POST'])
+@cross_origin
 def create_user():
     data = request.get_json()
     username = data['username']
@@ -117,6 +120,7 @@ def binary_search(fileList, id):
 
 # Save file
 @api.route('/new-file', methods=['POST'])
+@cross_origin
 @jwt_required()
 def new_file():
     data = request.get_json()
@@ -126,6 +130,7 @@ def new_file():
 
 
 @api.route('/fetch-files', methods=['GET'])
+@cross_origin
 @jwt_required()
 def fetch_files():
     return { 'files': [format_file(file) for file in current_user.files] } 
@@ -133,6 +138,7 @@ def fetch_files():
 
 # Get or Delete file
 @api.route('/fetch-file/<id>', methods=['GET', 'DELETE', 'PUT'])
+@cross_origin
 @jwt_required()
 def fetch_file(id):
     files = current_user.files
@@ -154,6 +160,7 @@ def fetch_file(id):
 
 # Interp parsed code
 @api.route('/interp', methods=['POST'])
+@cross_origin
 @jwt_required(optional=True)
 def interp_code():
     parsedCode = request.get_json()
@@ -162,6 +169,11 @@ def interp_code():
         return { 'output': parsedCode['message'] }
     
     return { 'output': 'in development' }
+
+@api.route('/')
+@cross_origin
+def serve():
+    return send_from_directory(api.static_folder, 'index.html')
 
 
 if __name__ == '__main__':

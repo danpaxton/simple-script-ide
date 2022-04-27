@@ -51,7 +51,7 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 
 @api.route('/login', methods=['POST'], endpoint='login')
-@cross_origin
+@cross_origin()
 def login():
     data = request.get_json()
     user = User.query.filter_by(username=data['username']).one_or_none()
@@ -65,7 +65,7 @@ def login():
 
 
 @api.route('/new-user', methods=['POST'], endpoint='new-user')
-@cross_origin
+@cross_origin()
 def new_user():
     data = request.get_json()
     username = data['username']
@@ -121,7 +121,7 @@ def binary_search(fileList, id):
 
 # Save file
 @api.route('/new-file', methods=['POST'], endpoint='new_file')
-@cross_origin
+@cross_origin()
 @jwt_required()
 def new_file():
     data = request.get_json()
@@ -131,7 +131,7 @@ def new_file():
 
 
 @api.route('/fetch-files', methods=['GET'], endpoint='fetch_files')
-@cross_origin
+@cross_origin()
 @jwt_required()
 def fetch_files():
     return { 'files': [format_file(file) for file in current_user.files] } 
@@ -139,7 +139,7 @@ def fetch_files():
 
 # Get or Delete file
 @api.route('/fetch-file/<id>', methods=['GET', 'DELETE', 'PUT'], endpoint='fetch_file')
-@cross_origin
+@cross_origin()
 @jwt_required()
 def fetch_file(id):
     files = current_user.files
@@ -161,7 +161,7 @@ def fetch_file(id):
 
 # Interp parsed code
 @api.route('/interp', methods=['POST'], endpoint='interp')
-@cross_origin
+@cross_origin()
 @jwt_required(optional=True)
 def interp():
     parsedCode = request.get_json()
@@ -173,7 +173,7 @@ def interp():
 
 
 @api.route('/', endpoint='serve')
-@cross_origin
+@cross_origin()
 def serve():
     return send_from_directory(api.static_folder, 'index.html')
 

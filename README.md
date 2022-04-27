@@ -1,6 +1,6 @@
 # Simple Script IDE
 
-### Running client locally.
+## Running client locally.
 
 Clone repository.
 ```console
@@ -16,5 +16,6 @@ $ npm run start
 ```
 The IDE should now be running on localhost port 3000.
 
-### Usage
-Anonymous mode. If the user is not logged in, the application will work for running programs and downloading files on to the user's local machine.
+## Usage
+### Anonymous mode.
+If the user is not logged in, the application will work for running programs and downloading files on to the user's local machine.

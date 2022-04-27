@@ -4,20 +4,18 @@ from datetime import timedelta, timezone, datetime
 from flask_jwt_extended import create_access_token, get_jwt, jwt_required, JWTManager, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
 import json, os
 load_dotenv()
 
-api = Flask(__name__, static_folder="../client/build", staic_url_path="")
-api.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DB_URI")
+api = Flask(__name__, static_folder="client/build", staic_url_path="")
+api.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URI')
 api.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-api.config['JWT_SECRET_KEY'] = os.getenv("SECRET_KEY")
+api.config['JWT_SECRET_KEY'] = os.getenv('SECRET_KEY')
 api.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=3)
 jwt = JWTManager(api)
 db = SQLAlchemy(api)
-migrate = Migrate(api, db)
 CORS(api)
 
 
@@ -50,7 +48,7 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 
 @api.route('/login', methods=['POST'])
-@cross_orgin
+@cross_origin
 def login():
     data = request.get_json()
     user = User.query.filter_by(username=data['username']).one_or_none()

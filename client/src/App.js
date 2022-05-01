@@ -4,7 +4,7 @@ import Login from './Login';
 
 import axios from "axios";
 
-import { parseProgram } from 'simple_script_parser';
+import { parseProgram } from 'sscript_parser';
 
 import CodeMirror from '@uiw/react-codemirror';
 import 'codemirror/keymap/sublime';
@@ -240,7 +240,7 @@ export const App = () => {
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"rel="stylesheet"></link>
     <ThemeProvider theme={theme}>
     <div className="header"><div className="headerText">Simple-Script IDE</div>
-      <Button sx={{color: 'white'}} align='right' onClick={() => window.open("https://www.npmjs.com/package/simple_script_parser")}>language information</Button>
+      <Button sx={{color: 'white'}} align='right' onClick={() => window.open("https://www.npmjs.com/package/sscript_parser")}>language information</Button>
     </div>
     <Login token={token} setToken={setToken}
       setFile={setFile} setOut={setOut} logOut={logOut}/>

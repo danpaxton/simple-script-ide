@@ -17,7 +17,7 @@
     "react-dom": "^17.0.2",
     "react-scripts": "^5.0.0",
     "semantic-ui-react": "^2.1.2",
-    "simple_script_parser": "^1.0.4",
+    "sscript_parser": "^1.0.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

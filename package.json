@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "sscript_parser": "^1.0.0"
+    "sscript_parser": "^1.0.2"
   }
 }

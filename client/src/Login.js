@@ -32,6 +32,7 @@ const Login = (props) => {
             props.setToken(data); 
             props.setFile({title: "Create or load a file.", id: null, code: ''});
             props.setOut({output: '', parsed:''})
+            props.setView('output')
             handleCloseLogin();
         } catch {
             setLoginError("Invalid username or password.");
@@ -98,8 +99,8 @@ const Login = (props) => {
             </DialogActions> 
           </DialogContent>
         </Dialog>
-        <Button variant="contained" onClick={() => props.token ? props.logOut() : setOpenLogin(true)}>{props.token ? "Logout" : "Login"}</Button>
-            { props.token ? props.token.username + "  :" : <Button sx={{color:"white"}} onClick={() => setOpenNewUser(true)}>New User</Button>}
+        <Button variant="text" sx={{color: 'white'}} onClick={() => props.token ? props.logOut() : setOpenLogin(true)}>{props.token ? "Logout" : "Login"}</Button>
+            { props.token ? props.token.username + " :": <Button variant='contained' sx={{color:"white"}} onClick={() => setOpenNewUser(true)}>New User</Button>}
     </div>
     );
 }

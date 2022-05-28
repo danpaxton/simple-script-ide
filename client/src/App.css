@@ -1,91 +1,122 @@
 .fileName {
-  padding: 10px;
+  width: 100px;
   display: inline;
-
   font-family: monospace;
   color: white;
+  padding: 10px;
 }
 
 .changes {
-  padding: 10px;
-  display: inline;
   font-family: monospace;
+  display: inline;
+  padding: 10px;
   font-size: small;
   color: white;
   float: right;
 }
 
+.listHeader {
+  border: outset thick rgba(97, 97, 97, .2);
+  background: #212121;
+}
+
+.list {
+  color: white;
+  height: 80vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .sidebar {
+  display: flex;
+  flex-direction: column;
   grid-area: sidebar;
-  position: static;
   background: black;
-  border: solid thick #212121;
-  overflow: auto;
-  scroll-behavior: smooth;
-  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
-  -5px -5px 20px rgb(0 0 0 / 0.2);
+  border: solid thin #212121;
+  box-shadow: 1px 1px 5px,
+  -1px -1px 5px;
+}
+
+.contentButtons {
+  align-items: center;
+  border: outset thick rgba(97, 97, 97, .2);
 }
 
 .content {
   grid-area: content;
-  height: calc(80vh - 200px);
   background: #212121;
-  padding-bottom: 36.5px;
-  position: relative;
-  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
-  -5px -5px 20px rgb(0 0 0 / 0.2);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 50px;
+  border: solid thin #212121;
+  box-shadow: 1px 1px 5px,
+  -1px -1px 5px;
 }
 
 .header {
   grid-area: header;
+  font-family: monospace; 
   display: inline-flex;
 }
 
 .login {
   grid-area: login;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   color: white; 
   font-size: 17px;
-  font-family: monospace; 
+  font-family: Arvo; 
   flex-direction: row-reverse;
 }
 
 
 .headerText {
+  padding: 5px;
   background: black;
-  border: solid thick black;
   font-family: Arvo;
   color: white;
   font-size: x-large;
-  border-radius: 5px;
+  box-shadow: 1px 1px 5px black,
+  -1px -1px 5px black;
+}
+
+.footerButtons {
+  background: #212121;
+  border: outset thick rgba(97, 97, 97, .2);
+}
+
+.footerContent {
+  padding: 10px;
+  overflow-y: auto;
+  overflow-wrap: break-word;
 }
 
 .footer {
   grid-area: footer;
-  position: static;
-  padding: 7.5px;
-  color: #b91c1c;
+  display: flex;
+  flex-direction: column;
+  border: solid thin #212121;
   font-size: larger;
   font-family: monospace;
-  border: solid thick #212121;
-  overflow-y: auto;
-  overflow-wrap: break-word;
-  scroll-behavior: smooth;
   background: black;
-  box-shadow: 5px 5px 20px rgb(0 0 0 / 0.2),
-  -5px -5px 20px rgb(0 0 0 / 0.2);
+  box-shadow: 1px 1px 5px,
+  -1px -1px 5px;
 }
 
 .wrapper {
-    padding: 10px;
+    height: calc(100vh - 40px);
+    width: calc(100vw - 40px);
+    padding: 20px;
     display: grid;
-    grid-gap: 10px;
-    background-color: #424242;
-    grid-template-columns: minmax(auto, 220px) auto;
-    grid-template-rows: minmax(auto, 40px) auto minmax(auto, 250px);
+    grid-gap: 20px;
+    grid-template-columns: 325px minmax(400px, auto) 170px;
+    grid-template-rows: 40px minmax(150px, auto) minmax(100px, 30vh);
     grid-template-areas:
     "header  header  login"
     "sidebar content content"
     "sidebar  footer  footer";
+  }
+
+  body {
+    background-color: #263238;
   }

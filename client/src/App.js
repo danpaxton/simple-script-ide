@@ -8,9 +8,11 @@ import { parseProgram } from 'simple-script-parser';
 
 import CodeMirror from '@uiw/react-codemirror';
 import 'codemirror/keymap/sublime';
-import 'codemirror/theme/ayu-dark.css';
+import 'codemirror/theme/material-darker.css';
 
-import { Button, Icon, IconButton, ButtonGroup } from '@mui/material';
+
+
+import { Button, Icon, IconButton, ButtonGroup,ToggleButtonGroup, ToggleButton} from '@mui/material';
 import { Dialog, DialogActions, DialogTitle, TextField } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { List, ListItemSecondaryAction, ListItemButton, ListItemText, ListItem } from '@mui/material';
@@ -21,6 +23,7 @@ const theme = createTheme({
   palette: {
     primary: {
       main: '#1769aa',
+      secondary: 'white'
     },
     secondary: {
       main: '#b2102f'
@@ -44,13 +47,18 @@ export const App = () => {
   const [openNewFile, setOpenNewFile] = useState(false);
   const [openNoSave, setOpenNoSave] = useState(false);
   const [delButtons, setDelButtons] = useState(false);
-  const [viewParse, setViewParse] = useState(false);
+  const [view, setView] = useState('output');
   const [interpError, setInterpError] = useState(false);
   const [fileName, setFileName] = useState("");
   const [nameError, setNameError] = useState([]);
   const [tokenExpired, setTokenExpired] = useState(false);
+  const [running, setRunning] = useState(false)
 
+  // Controls axios request for code interpretation.
+  let controller = new AbortController()
+  
   // IDE Handles
+
   const handleClear = () => { setOut({output:'', parsed:''}); setFile({...file, code: ''}); setOpenClear(false) };
 
   const handleOpenNewFile = () => { setFileName(""); setOpenNewFile(true) }
@@ -66,6 +74,7 @@ export const App = () => {
     setFile({title: "Login to create files.", id: null, code:''})
     setOut({output:'', parsed:''})
     setHasChange(false);
+    setView('output')
     removeToken();
   }
 
@@ -81,8 +90,7 @@ export const App = () => {
     }
   }
 
-  const handleNewFile = e => {
-    e.preventDefault()
+  const handleNewFile = () => {
     const err = validInput()
     setNameError(err);
     if (!err[0]) {
@@ -94,8 +102,8 @@ export const App = () => {
   const validInput = () => {
     const f_name = fileName.trim().toLowerCase()
     const name_arr = f_name.split('.');
-    if (name_arr.length !== 2 || name_arr[1] !== 'ss') {
-      return [true, "File name must end in '.ss'."]
+    if (name_arr.length !== 2 || name_arr[1] !== 'sc') {
+      return [true, "File name must end in '.sc'."]
     }
     if (name_arr[0].includes(" ")) {
       return [true, "File name must be one word."];
@@ -104,7 +112,7 @@ export const App = () => {
       return [true, "Max character limit exceeded."];
     }
     if (fileList.reduce((acc, e) => acc || (e.title.toLowerCase() === f_name), false)) {
-      return [true, "Dulpicate file name."]
+      return [true, "Dulpicate file name."] 
     }
     return [false];
   }
@@ -113,19 +121,25 @@ export const App = () => {
     if (tok) {
       setToken({...token, access_token: tok})
     }
-  }     
-
+  }  
+  
   // User api calls
   const runCode = async () => {
+    setRunning(true)
+    controller = new AbortController()
+    const sig = controller.signal
     const parsed = parseProgram(file.code);
-    setInterpError(parsed.kind === 'error');
     const { data } = await api.post(`/interp`, parsed, token ? {
       headers: {
         'Authorization': `Bearer ${token.access_token}` 
-      }
-    }: {})
-    refresh(data.access_token);
-    setOut({output: data.output,  parsed: JSON.stringify(parsed) });
+      }, signal : sig
+    }: { signal : sig })
+    if (!controller.signal.aborted) {
+      setInterpError(parsed.kind === 'error');
+      refresh(data.access_token);
+      setOut({output: data.output,  parsed: JSON.stringify(parsed) });
+    }
+    setRunning(false)
   }
 
   const handleUnAuth = (err) => {
@@ -230,7 +244,7 @@ export const App = () => {
     const element = document.createElement("a");
     const download = new Blob([file.code], { type: "text/plain" });
     element.href = URL.createObjectURL(download);
-    element.download = `${file.id ? file.title : "untitled.ss"}`;
+    element.download = `${(file.id ? file.title.split('.')[0] : "untitled") + ".txt"}`;
     document.body.appendChild(element);
     element.click();
   };
@@ -242,15 +256,10 @@ export const App = () => {
     <div className="header"><div className="headerText">Simple-Script IDE</div>
       <Button sx={{color: 'white'}} align='right' onClick={() => window.open("https://www.npmjs.com/package/simple-script-parser")}>language information</Button>
     </div>
-    <Login token={token} setToken={setToken}
+    <Login token={token} setToken={setToken} setView={setView}
       setFile={setFile} setOut={setOut} logOut={logOut}/>
     <div className="sidebar">
-      <div style={{background: "#212121"}}>
-      <ButtonGroup size='small' fullWidth={true} variant="outlined">
-        <Button color="primary" disabled={!token} onClick={handleOpenNewFile} > <Icon>post_add</Icon>New File</Button>
-        <Button color="secondary" disabled={!token || !fileList.length} onClick={() => setDelButtons(!delButtons)} > <Icon>delete</Icon>Delete</Button>
-      </ButtonGroup ></div>
-          <Dialog open={openNewFile} aria-labelledby="alert-dialog-title"> 
+        <Dialog open={openNewFile} aria-labelledby="alert-dialog-title"> 
             <DialogActions>
               <TextField id="standard-basic" error={nameError[0]} label={nameError[0] ? nameError[1]: "Enter file name."} 
                 variant="standard" onChange={f => setFileName(f.target.value)}/>
@@ -258,31 +267,46 @@ export const App = () => {
               <Button variant="contained" size='small' color="secondary" onClick={handleCloseNewFile}>Cancel</Button>
             </DialogActions> 
           </Dialog>
-          <List dense={true} sx={{overflow: 'auto', color: 'white', maxHeight: 690}}>
-              {fileList.map(file => (
-                <ListItem disablePadding key={file.id} sx={{"&:hover": { backgroundColor: "#263238" }, width:360}}>
-                <ListItemButton onClick={() => handleLoadFile(file.id)}> 
-                  <ListItemText sx={{fontFamily: "monospace"}} primary={file.title}/>
-              </ListItemButton>
-                <ListItemSecondaryAction>
-                    { delButtons ? <IconButton size='small' color='secondary' onClick={() => deleteFile(file.id)}>
-                      <Icon>delete</Icon></IconButton> : null}
-                  </ListItemSecondaryAction>
-                </ListItem>)
-              )}
-            </List></div>
+        <div className='listHeader'>
+          <ButtonGroup variant="text" fullWidth={true}>
+            <Button color="primary" disabled={!token} onClick={handleOpenNewFile} > <Icon>post_add</Icon>New File</Button>
+            <Button color="secondary" disabled={!token || !fileList.length} onClick={() => setDelButtons(!delButtons)} > <Icon>delete</Icon>Delete</Button>
+          </ButtonGroup>
+        </div>
+        <div className='list'>
+          <List dense={true}>
+          {fileList.map(curr_file => (
+            <ListItem disablePadding key={curr_file.id} 
+              sx={{"&& .Mui-selected": { backgroundColor: "rgba(38, 50, 56, .75)" },
+                "&:hover": { backgroundColor: 'rgba(255, 255, 255, .3)'}, width: '400px'}}>
+            <ListItemButton selected={curr_file.id === file.id} onClick={() => handleLoadFile(curr_file.id)}> 
+              <ListItemText sx={{fontFamily: "monospace"}} primary={curr_file.title}/>
+            </ListItemButton>
+            <ListItemSecondaryAction>
+                { delButtons ? <IconButton size='small' color='secondary' onClick={() => deleteFile(curr_file.id)}>
+                  <Icon>delete</Icon></IconButton> : null}
+              </ListItemSecondaryAction>
+            </ListItem>)
+          )}
+          </List>
+        </div>
+    </div>
     <div className="content">
-          <Button variant="text" color="primary" onClick={runCode} > 
-            <Icon>play_arrow</Icon>Run</Button>
-          <Button variant="text" color="primary" disabled={!file.id} onClick={saveFile}>
-            <Icon>playlist_add_check</Icon>Save</Button>
-          <Button variant="text" color="primary" onClick={downloadCode} > 
-            <Icon>download</Icon>Download</Button>
-          <Button variant="text" color="secondary" onClick={() => setOpenClear(true)} >
-            <Icon>refresh</Icon>Clear </Button>
-          <div className='fileName'>{file.title}</div>
-          <div className='changes'>{ hasChange ? `Unsaved changes.` :  "All changes saved."}</div>
-          <Dialog open={openClear} aria-labelledby="alert-dialog-title">
+          <div className="contentButtons"> 
+            <Button variant="text" color="primary" disabled={(token && !file.id) || running} onClick={runCode} > 
+              <Icon>play_arrow</Icon>Run</Button>
+            <Button variant="text" color="secondary" disabled={!running} onClick={() => controller.abort()}> 
+              <Icon>stop</Icon>stop</Button>
+            <Button variant="text" color="primary" disabled={!file.id || !hasChange} onClick={saveFile}>
+              <Icon>playlist_add_check</Icon>Save</Button>
+            <Button variant="text" color="primary" disabled={token && !file.id} onClick={downloadCode} > 
+              <Icon>download</Icon>Download</Button>
+            <Button variant="text" color="secondary" disabled={token && !file.id} onClick={() => setOpenClear(true)} >
+              <Icon>refresh</Icon>Clear </Button>
+            <div className='changes'>{ token && file.id ? (hasChange ? `Unsaved changes.` :  "All changes saved.") : null}</div>
+            <div className='fileName'>{file.title}</div>
+          </div>
+          <Dialog open={openClear}>
             <DialogTitle sx={{fontSize: 17, textAlign:'center'}} id="alert-dialog-title">{"Clear all code?"}</DialogTitle>
             <DialogActions>
               <Button variant="contained" size='small' color="primary" onClick={() => setOpenClear(false)}>Cancel</Button>
@@ -296,24 +320,35 @@ export const App = () => {
               <Button variant="contained" size='small' color="secondary" onClick={handleUnsavedIgnore}>Ignore</Button>
             </DialogActions> 
           </Dialog>
-          <CodeMirror 
-            value={file.code}
-            height='100%'
-            options={{
-              theme: "ayu-dark",
-              keymap: "sublime",
-              mode: "python"
-            }}
-            onChange={(editor, change) => {
-              setHasChange(true);
-              setFile({...file, code: editor.getValue()});
-            }}
-          /></div>
+          <CodeMirror
+              value={file.code}
+              options={{
+                readOnly: token && !file.id ? 'nocursor': false,
+                theme: "material-darker",
+                keymap: "sublime",
+                mode: "jsx"
+              }}
+              onChange={(editor, change) => {
+                setHasChange(true);
+                setFile({...file, code: editor.getValue()});
+              }}
+            />
+          </div>
           <div className="footer">
-            <Button variant='outlined' size='small' color='secondary' 
-              onClick={() => setViewParse(!viewParse)}>{viewParse ? 'Parse ' : 'Output'}
-            </Button>:{ viewParse ? <p style={{color: 'white'}}>{out.parsed}</p>
-              : <p style={{color: interpError ? '#b2102f' : '#6573c3'}}>{out.output}</p> } 
+            <div className='footerButtons'>
+              <ToggleButtonGroup size='small'
+                sx={{ 
+                  "&& .Mui-selected": { color:'white', background: "rgba(38, 50, 56, .75)"}
+                  }} value={view} exclusive onChange={(event, val) => setView(val)}>
+                <ToggleButton value='output'>Output</ToggleButton>
+                <ToggleButton value='parse'>Parse</ToggleButton>
+                <ToggleButton value='state'>State</ToggleButton>
+              </ToggleButtonGroup>
+            </div>
+            <div className='footerContent' style={{ color: view === 'parse' ? 'white' 
+              : (view === 'output' ? (interpError ? '#b2102f' : '#6573c3'): '#6573c3') }}>
+                {view === 'parse' ? out.parsed : view === 'output' ? out.output : out.output}
+              </div>
           </div>
           <Dialog open={tokenExpired}>
             <DialogTitle sx={{fontSize: 17, textAlign:'center'}}>{"Access token has expired. Logging out."}</DialogTitle>

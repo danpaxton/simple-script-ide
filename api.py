@@ -5,7 +5,7 @@ from flask_jwt_extended import create_access_token, get_jwt, jwt_required, JWTMa
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
-import json, os
+import json, os, time
 
 # Resolution for sqlalchemy 1.4.x
 uri = os.environ.get('DATABASE_URL')
@@ -165,7 +165,7 @@ def fetch_file(id):
 @jwt_required(optional=True)
 def interp():
     parsedCode = request.get_json()
-
+    time.sleep(3)
     if parsedCode['kind'] != 'ok':
         return { 'output': parsedCode['message'] }
     
